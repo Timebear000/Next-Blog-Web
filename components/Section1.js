@@ -8,8 +8,17 @@ import SwiperCore, { Autoplay } from "swiper";
 // Import Swiper styles
 import "swiper/css";
 
+// Import API
+import Fetcher from "../lib/fetcher";
+import Spinner from "./_child/Spinner";
+import CustomError from "./_child/error";
+
 const Section1 = () => {
-  // SwiperCore.use([Autoplay]);
+  const { data, isLoading, isError } = Fetcher("api/trending");
+  if (isLoading) return <Spinner>Loadding....</Spinner>;
+  if (isError) return <CustomError />;
+  SwiperCore.use([Autoplay]);
+
   const bg = {
     background: "url('/images/banner.png') no-repeat",
     backgroundPosition: "right",
@@ -20,15 +29,16 @@ const Section1 = () => {
         <h1 className="font-bold text-4xl pb-12 text-center">Trending</h1>
         <Swiper
           slidesPerView={1}
-          // loop={true}
-          // autoplay={{
-          //   delay: 2000,
-          // }}
+          loop={true}
+          autoplay={{
+            delay: 2000,
+          }}
         >
-          <SwiperSlide>{Slide()}</SwiperSlide>
-          <SwiperSlide>{Slide()}</SwiperSlide>
-          <SwiperSlide>{Slide()}</SwiperSlide>
-          <SwiperSlide>{Slide()}</SwiperSlide>
+          {data.map((value, index) => (
+            <SwiperSlide key={index}>
+              <Slide data={value}></Slide>
+            </SwiperSlide>
+          ))}
         </Swiper>
       </div>
     </section>
@@ -37,50 +47,33 @@ const Section1 = () => {
 
 export default Section1;
 
-function Slide() {
+function Slide({ data }) {
+  const { id, title, category, img, published, author, description } = data;
   return (
     <div className="grid md:grid-cols-2">
       <div className="imgage">
-        <Link href={"#"}>
+        <Link href={`/posts/${id}`}>
           <a>
-            <Image
-              src={"/images/img1.jpg"}
-              width={600}
-              height={600}
-              alt="메인이미지"
-            />
+            <Image src={img || "/images/img1.jpg"} width={600} height={600} alt="메인이미지" />
           </a>
         </Link>
       </div>
       <div className="info flex justify-center flex-col">
         <div className="cat">
-          <Link href={"/"}>
-            <a className="text-orange-600  hover:text-orange-800">
-              Business, Travel
-            </a>
+          <Link href={`/posts/${id}`}>
+            <a className="text-orange-600  hover:text-orange-800">{category}</a>
           </Link>
-          <Link href={"/"}>
-            <a className="text-gray-600  hover:text-gray-800">
-              {" "}
-              - Jun 03, 2022
-            </a>
+          <Link href={`/posts/${id}`}>
+            <a className="text-gray-600  hover:text-gray-800"> - {published}</a>
           </Link>
         </div>
         <div className="title">
-          <Link href={"/"}>
-            <a className="text-3xl md:text-6xl font-bold text-gray-800  hover:text-gray-600">
-              SSR NextJs에 대한 공부 클론코딩
-            </a>
+          <Link href={`/posts/${id}`}>
+            <a className="text-3xl md:text-6xl font-bold text-gray-800  hover:text-gray-600">{title}</a>
           </Link>
         </div>
-        <p className="text-gray-500 py-3">
-          Next.js는 서버 사이트 렌더링, 정적 웹 페이지 생성 등 리액트 기반 웹
-          애플리케이션 기능들을 가능케 하는 Node.js 위에서 빌드된 오픈 소스 웹
-          개발 프레임워크이다. 리액트 문서는 Next.js를 권고하는 툴체인들 중
-          하나로 언급하며 개발자들이 Node.js로 서버 렌더링되는 웹사이트를 빌드할
-          때의 해결책의 하나로 충고하고 있다.
-        </p>
-        <Author />
+        <p className="text-gray-500 py-3">{description}</p>
+        {author ? <Author {...author} /> : <></>}
       </div>
     </div>
   );
